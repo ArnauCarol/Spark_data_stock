@@ -1,0 +1,130 @@
+# Documentación Cheat-Sheet PySpark
+
+# Iniciar Sesión
+from pyspark import SparkSession
+spark = SparkSession.builder.appName("").getOrCreate()
+df = spark.read.json("")
+
+# Revisar Estructura
+df.printSchema()
+df.columns
+df.describe().show()
+
+# Importar Tipos
+from pyspark.sql.types import (StructField, StringType, StructType ,...)
+
+# Estructurar Datos
+data_schema = [StructField('age', IntegerType(), True), ...]
+final_struct = StructType(fields = data_schema)
+
+df = spark.read.jspn("", shema = final_struct)
+with CSV --> inferShema
+
+
+# Set Column
+df.select("ColumnName").show()
+df.select(["...", "..."]).show()
+
+# Add Column
+df.withColumn('newColumn', df['age']*2).show() # Crea un nuevo df
+
+#Rename Column
+df.withColumnRenamed('age', 'my_age').show()
+
+#SQL
+df.createOrReplaceTempView('Tablename')
+result = spark.sql('Select * from TableName')
+result.show()
+
+#Filter
+df.filter('close < 500').show()
+|close|
+|.....|
+
+df.filter('close < 500').select('open').show()
+|open|
+|....|
+
+df.filter('close < 500').select(['open', 'close']).show()
+|open|close|
+|....|.....|
+
+
+#Una mejor manera de hacer esta operación es:
+df.filter(df['close'] < 500).select('volumn').show()
+
+#Dos clausulas
+df.filter((df['close'] < 500) & (df['open'] > 500)).show()
+
+#Collect (genera una lista del objeto)
+result = df.filter(df['low'] == 1997.16).collect()
+row = result[0]
+row.asDict()
+
+#GroupBy
+df.gourpBy('company').avg().show()
+|company|avg|
+|.......|...|
+
+- min
+- max
+- count
+- avg
+
+#Agregation
+df.agg({'sales', 'sum'}).show()
+|sum(sales)|
+|..........|
+
+group_data = df.group.By('Company')
+group_data.agg({'sales', 'max'}).show()
+
+#Other functions
+from pyspark.sql.functions import (countDistinct, avg, stddev)
+
+### Apply fuctions
+df.select(countDistinct('sales')).show()
+
+# Alias
+df.select(avg('sales').alias('Agv_Sales')).show()
+
+#Formato decimal
+from pyspark.sql.functions import format_number
+df.select(format_number('name', 2)).show() #nº decimales = 2
+
+#Ordenar
+df.orderBy('sales').show()
+df.orderBy(df['sales'].desc()).show() #invertir el order (desc)
+
+#Missig Values
+df.na.drop().show() # Elimina fila con 1 valor nulo
+df.na.drop(tresh=2) # Elimina fila cuando 2 valores nulos como minimo
+df.na.drop(how='any').show() 
+
+### Considerar solo alguna columna
+df.na.drop(subset=['Sales']).show() # Solo elimino filas con valores null en 'sales'
+
+#Fill Nulls
+df.na.fill('Null Values').show() # LLenará los valores str nulos con 'Null Values'
+df.na.fill(0).show() # LLenará la columna int con 0
+
+
+# Mlib
+#Modelo regresion linial
+from pyspark.ml.regression import LinearRegression
+
+# Crear un DataFrame de entrenamiento 'data' que contenga las columnas "features" y "label"
+
+# Configurar el modelo de regresión lineal
+lr = LinearRegression(featuresCol="features", labelCol="label")
+
+# Ajustar el modelo a los datos de entrenamiento
+lr_model = lr.fit(data)
+
+# Hacer predicciones en nuevos datos
+predictions = lr_model.transform(nuevos_datos)
+
+# 'predictions' ahora contiene las predicciones basadas en el modelo de regresión lineal
+
+
+
